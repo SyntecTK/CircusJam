@@ -1,10 +1,12 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class HandManager : MonoBehaviour
 {
+    [SerializeField] private DeckManager deckManager;
+    [SerializeField] private bool isPlayer = true;
+
     [Header("Bezier Curve Points")]
     [SerializeField] private Transform startPoint;
     [SerializeField] private Transform controlPoint;
@@ -13,8 +15,6 @@ public class HandManager : MonoBehaviour
     [Header("Card Settings")]
     [SerializeField] private RectTransform cardPrefab;
     [SerializeField] private int cardCount = 6;
-    [SerializeField] private int minCardValue = 1;
-    [SerializeField] private int maxCardValue = 9;
 
     private List<RectTransform> cards = new List<RectTransform>();
 
@@ -24,22 +24,31 @@ public class HandManager : MonoBehaviour
         ArrangeCards();
     }
 
-    private void PopulateHand()
+    public void PopulateHand()
     {
-        foreach(var c in cards)
+        foreach (var c in cards)
         {
-            Destroy(c.gameObject);
+            if (c != null) Destroy(c.gameObject);
         }
         cards.Clear();
+
         for (int i = 0; i < cardCount; i++)
         {
+            int drawnValue = deckManager.DrawCard(isPlayer);
+            if (drawnValue == 0)
+            {
+                Debug.LogWarning("Keine Karten mehr im Deck zum Ziehen!");
+                break;
+            }
+
             RectTransform card = Instantiate(cardPrefab, transform);
-            AssignRandomValue(card, i);
+            AssignCardValue(card, drawnValue, i);
             cards.Add(card);
         }
+        ArrangeCards();
     }
 
-    private void AssignRandomValue(RectTransform card, int index)
+    private void AssignCardValue(RectTransform card, int value, int index)
     {
         Card cardData = card.GetComponent<Card>();
         if (cardData == null)
@@ -49,7 +58,6 @@ public class HandManager : MonoBehaviour
             return;
         }
 
-        int value = Random.Range(minCardValue, maxCardValue + 1);
         cardData.value = value;
         card.name = $"Card_{index}_{value}";
 
@@ -60,27 +68,38 @@ public class HandManager : MonoBehaviour
         }
     }
 
-    private void OnValidate()
+    public void DiscardUnplayedCards()
     {
-        if (minCardValue < 0)
+        for (int i = cards.Count - 1; i >= 0; i--)
         {
-            minCardValue = 0;
-        }
+            RectTransform cardRect = cards[i];
+            if (cardRect == null) continue;
 
-        if (maxCardValue < minCardValue)
-        {
-            maxCardValue = minCardValue;
+            // Nur Karten discarden, die noch in der Hand sind (Kind dieses Transforms)
+            if (cardRect.parent != transform)
+            {
+                continue; // Karte wurde aufs Board gespielt, nicht discarden
+            }
+
+            Card cardData = cardRect.GetComponent<Card>();
+            if (cardData != null)
+            {
+                deckManager.AddToDiscard(cardData.value, isPlayer);
+            }
+
+            Destroy(cardRect.gameObject);
         }
+        cards.Clear();
     }
 
     private void ArrangeCards()
     {
         int count = cards.Count;
-        if(count == 0) return;
+        if (count == 0) return;
 
-        for(int i = 0; i < count; i++)
+        for (int i = 0; i < count; i++)
         {
-            float t = count == 1 ? 0.5f : (float)i / (count -1);
+            float t = count == 1 ? 0.5f : (float)i / (count - 1);
             Vector2 pos = transform.InverseTransformPoint(GetBezierPoint(t));
             cards[i].anchoredPosition = pos;
 

@@ -1,4 +1,5 @@
-using UnityEngine;
+﻿using UnityEngine;
+using System.Collections.Generic;
 
 public class ScoreSystem : MonoBehaviour
 {
@@ -16,7 +17,7 @@ public class ScoreSystem : MonoBehaviour
             values[i] = cards[i]?.value ?? 0;
         }
 
-        var valueCounts = new System.Collections.Generic.Dictionary<int, int>();
+        var valueCounts = new Dictionary<int, int>();
         foreach (int val in values)
         {
             if (val != 0)
@@ -43,12 +44,16 @@ public class ScoreSystem : MonoBehaviour
             }
         }
 
-        foreach (int val in values)
-        {
-            if (val == 0)
-                score += 0;
-        }
-
         return score;
+    }
+
+    public static int CalculateTotalScore(Board board)
+    {
+        int total = 0;
+        for (int row = 0; row < 3; row++)
+        {
+            total += CalculateRowScore(board, row);
+        }
+        return total;
     }
 }

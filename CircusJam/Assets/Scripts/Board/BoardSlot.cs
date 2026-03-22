@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class BoardSlot : MonoBehaviour, IDropHandler
@@ -66,6 +66,13 @@ public class BoardSlot : MonoBehaviour, IDropHandler
             return;
         }
 
+        // Prüfe Kartenlimit pro Zug
+        if (isPlayerSlot && GameManager.Instance != null && !GameManager.Instance.CanPlayCard)
+        {
+            Debug.Log("Kartenlimit erreicht! Maximal " + GameManager.Instance.MaxCardsPerTurn + " Karten pro Zug.");
+            return;
+        }
+
         Board targetBoard = ResolveBoard();
         Card droppedCard = card.GetComponent<Card>();
         if (targetBoard == null || droppedCard == null)
@@ -85,7 +92,6 @@ public class BoardSlot : MonoBehaviour, IDropHandler
         card.wasDropped = true;
 
         targetBoard.PlaceCard(row, column, droppedCard);
-        Debug.Log($"BoardSlot.OnDrop: row={row}, column={column}, isPlayerSlot={isPlayerSlot}, targetBoard={(targetBoard != null ? targetBoard.name : "null")}");
         EventManager.CardDropped(row, isPlayerSlot);
     }
 }
