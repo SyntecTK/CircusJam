@@ -4,26 +4,51 @@ public class ScoreSystem : MonoBehaviour
 {
     public static int CalculateRowScore(Board board, int row)
     {
-        Card a = board.GetCard(row, 0);
-        Card b = board.GetCard(row, 1);
-        Card c = board.GetCard(row, 2);
+        Card[] cards = new Card[5];
+        for (int i = 0; i < 5; i++)
+        {
+            cards[i] = board.GetCard(row, i);
+        }
 
-        int av = a?.value ?? 0;
-        int bv = b?.value ?? 0;
-        int cv = c?.value ?? 0;
+        int[] values = new int[5];
+        for (int i = 0; i < 5; i++)
+        {
+            values[i] = cards[i]?.value ?? 0;
+        }
 
-        if(av == bv && bv == cv)
-            return (av*3)+(bv*3)+(cv*3);
+        var valueCounts = new System.Collections.Generic.Dictionary<int, int>();
+        foreach (int val in values)
+        {
+            if (val != 0)
+            {
+                if (valueCounts.ContainsKey(val))
+                    valueCounts[val]++;
+                else
+                    valueCounts[val] = 1;
+            }
+        }
 
-        if(av == bv)
-            return (av*2)+(bv*2)+cv;
+        int score = 0;
+        foreach (var pair in valueCounts)
+        {
+            int val = pair.Key;
+            int count = pair.Value;
+            if (count >= 2)
+            {
+                score += val * count * count;
+            }
+            else
+            {
+                score += val;
+            }
+        }
 
-        if(av == cv)
-            return (av*2)+bv+(cv*2);
+        foreach (int val in values)
+        {
+            if (val == 0)
+                score += 0;
+        }
 
-        if(bv == cv)
-            return av+(bv*2)+(cv*2);
-
-        return av + bv + cv;
+        return score;
     }
 }

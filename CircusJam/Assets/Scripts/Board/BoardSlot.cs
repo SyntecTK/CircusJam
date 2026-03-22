@@ -85,6 +85,7 @@ public class BoardSlot : MonoBehaviour, IDropHandler
         card.wasDropped = true;
 
         targetBoard.PlaceCard(row, column, droppedCard);
+        Debug.Log($"BoardSlot.OnDrop: row={row}, column={column}, isPlayerSlot={isPlayerSlot}, targetBoard={(targetBoard != null ? targetBoard.name : "null")}");
         EventManager.CardDropped(row, isPlayerSlot);
     }
 }

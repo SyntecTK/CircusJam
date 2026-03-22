@@ -1,7 +1,7 @@
 using UnityEngine;
 using System;
 
-public static class EventManager 
+public static class EventManager
 {
     public static event System.Action<int, bool> OnCardDropped;  // row, isPlayerSlot
     public static event System.Action<int, bool> OnCardRemoved;  // row, isPlayerSlot

@@ -7,8 +7,8 @@ public class GameManager : MonoBehaviour
 
     private readonly int[] playerRowScores = new int[3];
     private readonly int[] enemyRowScores = new int[3];
-    private readonly int[,] playerBoardState = new int[3, 3];
-    private readonly int[,] enemyBoardState = new int[3, 3];
+    private readonly int[,] playerBoardState = new int[3, 5];
+    private readonly int[,] enemyBoardState = new int[3, 5];
 
     public int[] PlayerRowScores => (int[])playerRowScores.Clone();
     public int[] EnemyRowScores => (int[])enemyRowScores.Clone();
@@ -139,7 +139,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        for (int column = 0; column < 3; column++)
+        for (int column = 0; column < 5; column++)
         {
             Card card = board.GetCard(row, column);
             if (card == null || card.value != valueToRemove)
@@ -148,8 +148,10 @@ public class GameManager : MonoBehaviour
             }
 
             board.RemoveCard(row, column);
-            Object.Destroy(card.gameObject);
+            Destroy(card.gameObject);
             EventManager.CardRemoved(row, isPlayerSlot);
         }
+
+        Debug.Log($"Entferne Karten mit Wert {valueToRemove} aus Reihe {row} des gegnerischen Boards, Spieler: {isPlayerSlot}");
     }
 }

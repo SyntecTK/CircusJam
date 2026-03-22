@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Board : MonoBehaviour
 {
-    public Card[,] grid = new Card[3,3];
+    public Card[,] grid = new Card[3, 5];
 
     public void PlaceCard(int row, int column, Card card)
     {
