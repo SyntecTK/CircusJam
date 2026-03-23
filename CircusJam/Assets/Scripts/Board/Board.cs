@@ -2,14 +2,14 @@ using UnityEngine;
 
 public class Board : MonoBehaviour
 {
-    public Card[,] grid = new Card[3, 5];
+    public CardData[,] grid = new CardData[3, 5];
 
-    public void PlaceCard(int row, int column, Card card)
+    public void PlaceCard(int row, int column, CardData card)
     {
         grid[row, column] = card;
     }
 
-    public Card GetCard(int row, int column)
+    public CardData GetCard(int row, int column)
     {
         return grid[row, column];
     }

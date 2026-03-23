@@ -20,7 +20,7 @@ public class BoardSlot : MonoBehaviour, IDropHandler
     public int Column => column;
     public bool IsPlayerSlot => isPlayerSlot;
 
-    public void RemoveCardFromSlot(Card card)
+    public void RemoveCardFromSlot(CardData card)
     {
         Board targetBoard = ResolveBoard();
         if (targetBoard == null || card == null)
@@ -35,7 +35,7 @@ public class BoardSlot : MonoBehaviour, IDropHandler
         }
     }
 
-    public void RestoreCardToSlot(Card card)
+    public void RestoreCardToSlot(CardData card)
     {
         Board targetBoard = ResolveBoard();
         if (targetBoard == null || card == null)
@@ -80,13 +80,13 @@ public class BoardSlot : MonoBehaviour, IDropHandler
         }
 
         Board targetBoard = ResolveBoard();
-        Card droppedCard = card.GetComponent<Card>();
+        CardData droppedCard = card.GetComponent<CardData>();
         if (targetBoard == null || droppedCard == null)
         {
             return;
         }
 
-        Card existingCard = targetBoard.GetCard(row, column);
+        CardData existingCard = targetBoard.GetCard(row, column);
         if (existingCard != null && existingCard != droppedCard)
         {
             Debug.Log("Slot is already occupied. Drop rejected.");

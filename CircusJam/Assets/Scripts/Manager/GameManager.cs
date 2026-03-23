@@ -144,7 +144,7 @@ public class GameManager : MonoBehaviour
         {
             for (int column = 0; column < columns; column++)
             {
-                Card card = board != null ? board.GetCard(row, column) : null;
+                CardData card = board != null ? board.GetCard(row, column) : null;
                 state[row, column] = card != null ? card.value : 0;
             }
         }
@@ -168,7 +168,7 @@ public class GameManager : MonoBehaviour
         for (int column = 0; column < columns; column++)
         {
             int previousValue = cachedState[row, column];
-            Card currentCard = board.GetCard(row, column);
+            CardData currentCard = board.GetCard(row, column);
             int currentValue = currentCard != null ? currentCard.value : 0;
 
             if (currentValue != 0 && currentValue != previousValue)
@@ -190,7 +190,7 @@ public class GameManager : MonoBehaviour
 
         for (int column = 0; column < 5; column++)
         {
-            Card card = board.GetCard(row, column);
+            CardData card = board.GetCard(row, column);
             if (card == null || card.value != valueToRemove)
             {
                 continue;

@@ -32,7 +32,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         sourceSlot = originalParent != null ? originalParent.GetComponent<BoardSlot>() : null;
         wasDropped = false;
 
-        Card cardData = GetComponent<Card>();
+        CardData cardData = GetComponent<CardData>();
         if (sourceSlot != null && cardData != null)
         {
             sourceSlot.RemoveCardFromSlot(cardData);
@@ -62,7 +62,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
             transform.localRotation = Quaternion.identity;
             transform.localScale = Vector3.one;
 
-            Card cardData = GetComponent<Card>();
+            CardData cardData = GetComponent<CardData>();
             if (sourceSlot != null && cardData != null)
             {
                 sourceSlot.RestoreCardToSlot(cardData);

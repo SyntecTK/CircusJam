@@ -53,7 +53,7 @@ public class HandManager : MonoBehaviour, IDropHandler
 
     private void AssignCardValue(RectTransform card, int value, int index)
     {
-        Card cardData = card.GetComponent<Card>();
+        CardData cardData = card.GetComponent<CardData>();
         if (cardData == null)
         {
             card.name = $"Card_{index}";
@@ -90,7 +90,7 @@ public class HandManager : MonoBehaviour, IDropHandler
                 continue; // Karte wurde aufs Board gespielt, nicht discarden
             }
 
-            Card cardData = cardRect.GetComponent<Card>();
+            CardData cardData = cardRect.GetComponent<CardData>();
             if (cardData != null)
             {
                 deckManager.AddToDiscard(cardData.value, isPlayer);

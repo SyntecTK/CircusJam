@@ -5,7 +5,7 @@ public class ScoreSystem : MonoBehaviour
 {
     public static int CalculateRowScore(Board board, int row)
     {
-        Card[] cards = new Card[5];
+        CardData[] cards = new CardData[5];
         for (int i = 0; i < 5; i++)
         {
             cards[i] = board.GetCard(row, i);
