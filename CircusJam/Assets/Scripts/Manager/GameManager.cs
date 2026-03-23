@@ -8,6 +8,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Board playerBoard;
     [SerializeField] private Board enemyBoard;
     [SerializeField] private HandManager playerHandManager;
+    [SerializeField] private HandManager enemyHandManager;
     [SerializeField] private int maxCardsPerTurn = 4;
 
     private readonly int[] playerRowScores = new int[3];
@@ -15,6 +16,7 @@ public class GameManager : MonoBehaviour
     private readonly int[,] playerBoardState = new int[3, 5];
     private readonly int[,] enemyBoardState = new int[3, 5];
 
+    private bool isPlayerTurn = true;
     private int cardsPlayedThisTurn;
 
     public int[] PlayerRowScores => (int[])playerRowScores.Clone();
@@ -23,6 +25,7 @@ public class GameManager : MonoBehaviour
     public int CardsPlayedThisTurn => cardsPlayedThisTurn;
     public int MaxCardsPerTurn => maxCardsPerTurn;
     public bool CanPlayCard => cardsPlayedThisTurn < maxCardsPerTurn;
+    public bool IsPlayerTurn => isPlayerTurn;
 
     private void Awake()
     {
@@ -31,8 +34,28 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        if (playerHandManager != null)
+        {
+            playerHandManager.ConfigureOwner(true);
+        }
+
+        if (enemyHandManager != null)
+        {
+            enemyHandManager.ConfigureOwner(false);
+        }
+
+        if (isPlayerTurn && playerHandManager != null)
+        {
+            playerHandManager.PopulateHand();
+        }
+        else if (!isPlayerTurn && enemyHandManager != null)
+        {
+            enemyHandManager.PopulateHand();
+        }
+
         cardsPlayedThisTurn = 0;
         RefreshState();
+        EventManager.TurnEnded();
     }
 
     private void Update()
@@ -57,16 +80,64 @@ public class GameManager : MonoBehaviour
 
     public void EndTurn()
     {
-        if (playerHandManager != null)
+        LockBoardCards(playerBoard);
+        LockBoardCards(enemyBoard);
+
+        // Discard unplayed cards vom aktuellen Spieler
+        if (isPlayerTurn && playerHandManager != null)
         {
             playerHandManager.DiscardUnplayedCards();
-            playerHandManager.PopulateHand();
+        }
+        else if (!isPlayerTurn && enemyHandManager != null)
+        {
+            enemyHandManager.DiscardUnplayedCards();
         }
 
         cardsPlayedThisTurn = 0;
+        isPlayerTurn = !isPlayerTurn;
+        
+        // Repopulate hand für den NEUEN Spieler
+        if (isPlayerTurn && playerHandManager != null)
+        {
+            playerHandManager.PopulateHand();
+        }
+        else if (!isPlayerTurn && enemyHandManager != null)
+        {
+            enemyHandManager.PopulateHand();
+        }
+        
         RefreshState();
         EventManager.TurnEnded();
-        Debug.Log("Neue Runde gestartet.");
+        Debug.Log($"Zug vorbei. {(isPlayerTurn ? "Spieler" : "Gegner")} ist jetzt dran.");
+    }
+
+    private static void LockBoardCards(Board board)
+    {
+        if (board == null || board.grid == null)
+        {
+            return;
+        }
+
+        int rows = board.grid.GetLength(0);
+        int columns = board.grid.GetLength(1);
+
+        for (int row = 0; row < rows; row++)
+        {
+            for (int column = 0; column < columns; column++)
+            {
+                CardData card = board.grid[row, column];
+                if (card == null)
+                {
+                    continue;
+                }
+
+                CardDrag drag = card.GetComponent<CardDrag>();
+                if (drag != null)
+                {
+                    drag.enabled = false;
+                }
+            }
+        }
     }
 
     public void UndoPlayedCard()
@@ -199,7 +270,7 @@ public class GameManager : MonoBehaviour
             board.RemoveCard(row, column);
             if (deckManager != null)
             {
-                deckManager.AddToDiscard(card.value, isPlayerSlot);
+                deckManager.AddToDiscard(card.Identity, isPlayerSlot);
             }
             card.gameObject.SetActive(false);
             EventManager.CardRemoved(row, isPlayerSlot);

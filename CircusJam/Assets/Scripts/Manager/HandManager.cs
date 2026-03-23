@@ -2,10 +2,12 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class HandManager : MonoBehaviour, IDropHandler
 {
     [SerializeField] private DeckManager deckManager;
+    [SerializeField] private CardSpriteDatabase cardSpriteDatabase;
     [SerializeField] private bool isPlayer = true;
 
     [Header("Bezier Curve Points")]
@@ -23,8 +25,12 @@ public class HandManager : MonoBehaviour, IDropHandler
 
     private void Start()
     {
-        PopulateHand();
         ArrangeCards();
+    }
+
+    public void ConfigureOwner(bool ownerIsPlayer)
+    {
+        isPlayer = ownerIsPlayer;
     }
 
     public void PopulateHand()
@@ -37,21 +43,21 @@ public class HandManager : MonoBehaviour, IDropHandler
 
         for (int i = 0; i < cardCount; i++)
         {
-            int drawnValue = deckManager.DrawCard(isPlayer);
-            if (drawnValue == 0)
+            CardIdentity drawnCard = deckManager.DrawCard(isPlayer);
+            if (!drawnCard.IsValid)
             {
                 Debug.LogWarning("Keine Karten mehr im Deck zum Ziehen!");
                 break;
             }
 
             RectTransform card = Instantiate(cardPrefab, transform);
-            AssignCardValue(card, drawnValue, i);
+            AssignCardValue(card, drawnCard, i);
             cards.Add(card);
         }
         ArrangeCards();
     }
 
-    private void AssignCardValue(RectTransform card, int value, int index)
+    private void AssignCardValue(RectTransform card, CardIdentity drawnCard, int index)
     {
         CardData cardData = card.GetComponent<CardData>();
         if (cardData == null)
@@ -61,8 +67,8 @@ public class HandManager : MonoBehaviour, IDropHandler
             return;
         }
 
-        cardData.value = value;
-        card.name = $"Card_{index}_{value}";
+        cardData.SetCard(drawnCard);
+        card.name = $"Card_{index}_{CardData.GetRankLabel(drawnCard.rank)}_{CardData.GetSuitLabel(drawnCard.suit)}";
 
         CardDrag cardDrag = card.GetComponent<CardDrag>();
         if (cardDrag != null)
@@ -70,10 +76,19 @@ public class HandManager : MonoBehaviour, IDropHandler
             cardDrag.SetOwnerHand(this);
         }
 
+        Image cardImage = card.GetComponentInChildren<Image>();
+        Sprite sprite = cardSpriteDatabase != null ? cardSpriteDatabase.GetSprite(drawnCard.rank, drawnCard.suit) : null;
+        if (cardImage != null && sprite != null)
+        {
+            cardImage.sprite = sprite;
+        }
+
         TMP_Text cardText = card.GetComponentInChildren<TMP_Text>();
         if (cardText != null)
         {
-            cardText.text = value.ToString();
+            cardText.text = sprite != null
+                ? string.Empty
+                : $"{CardData.GetRankLabel(drawnCard.rank)}{CardData.GetSuitLabel(drawnCard.suit)}";
         }
     }
 
@@ -93,7 +108,7 @@ public class HandManager : MonoBehaviour, IDropHandler
             CardData cardData = cardRect.GetComponent<CardData>();
             if (cardData != null)
             {
-                deckManager.AddToDiscard(cardData.value, isPlayer);
+                deckManager.AddToDiscard(cardData.Identity, isPlayer);
             }
 
             Destroy(cardRect.gameObject);

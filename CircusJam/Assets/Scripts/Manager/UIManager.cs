@@ -16,11 +16,9 @@ public class UIManager : MonoBehaviour
 
     [Header("Deck Texts")]
     [SerializeField] private TMP_Text playerDeckCountText;
-    //[SerializeField] private TMP_Text enemyDeckCountText;
 
     [Header("Discard Texts")]
     [SerializeField] private TMP_Text playerDiscardCountText;
-    //[SerializeField] private TMP_Text enemyDiscardCountText;
 
     [Header("References")]
     [SerializeField] private Board playerBoard;
@@ -96,14 +94,16 @@ public class UIManager : MonoBehaviour
             return;
         }
 
+        bool isPlayerTurn = GameManager.Instance != null && GameManager.Instance.IsPlayerTurn;
+
         if (playerDeckCountText != null)
         {
-            playerDeckCountText.text = deckManager.PlayerDrawCount.ToString();
+            playerDeckCountText.text = isPlayerTurn ? deckManager.PlayerDrawCount.ToString() : deckManager.EnemyDrawCount.ToString();
         }
 
         if (playerDiscardCountText != null)
         {
-            playerDiscardCountText.text = deckManager.PlayerDiscardCount.ToString();
+            playerDiscardCountText.text = isPlayerTurn ? deckManager.PlayerDiscardCount.ToString() : deckManager.EnemyDiscardCount.ToString();
         }
     }
 }
