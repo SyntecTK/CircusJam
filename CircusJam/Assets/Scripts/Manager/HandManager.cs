@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class HandManager : MonoBehaviour
+public class HandManager : MonoBehaviour, IDropHandler
 {
     [SerializeField] private DeckManager deckManager;
     [SerializeField] private bool isPlayer = true;
@@ -17,6 +18,8 @@ public class HandManager : MonoBehaviour
     [SerializeField] private int cardCount = 6;
 
     private List<RectTransform> cards = new List<RectTransform>();
+
+    public bool IsPlayer => isPlayer;
 
     private void Start()
     {
@@ -61,6 +64,12 @@ public class HandManager : MonoBehaviour
         cardData.value = value;
         card.name = $"Card_{index}_{value}";
 
+        CardDrag cardDrag = card.GetComponent<CardDrag>();
+        if (cardDrag != null)
+        {
+            cardDrag.SetOwnerHand(this);
+        }
+
         TMP_Text cardText = card.GetComponentInChildren<TMP_Text>();
         if (cardText != null)
         {
@@ -92,20 +101,53 @@ public class HandManager : MonoBehaviour
         cards.Clear();
     }
 
+    public void OnDrop(PointerEventData eventData)
+    {
+        CardDrag draggedCard = eventData.pointerDrag != null ? eventData.pointerDrag.GetComponent<CardDrag>() : null;
+        if (draggedCard == null || draggedCard.OwnerHand != this)
+        {
+            return;
+        }
+
+        draggedCard.transform.SetParent(transform);
+        draggedCard.transform.localRotation = Quaternion.identity;
+        draggedCard.transform.localScale = Vector3.one;
+        draggedCard.wasDropped = true;
+        NotifyHandChanged();
+    }
+
+    public void NotifyHandChanged()
+    {
+        ArrangeCards();
+    }
+
     private void ArrangeCards()
     {
-        int count = cards.Count;
+        List<RectTransform> handCards = new List<RectTransform>();
+        for (int i = 0; i < cards.Count; i++)
+        {
+            RectTransform card = cards[i];
+            if (card != null && card.parent == transform)
+            {
+                handCards.Add(card);
+            }
+        }
+
+        int count = handCards.Count;
         if (count == 0) return;
+
+        float spacing = cardCount > 1 ? 1f / (cardCount - 1) : 0f;
+        float tStart = 0.5f - (count - 1) * spacing / 2f;
 
         for (int i = 0; i < count; i++)
         {
-            float t = count == 1 ? 0.5f : (float)i / (count - 1);
+            float t = count == 1 ? 0.5f : tStart + i * spacing;
             Vector2 pos = transform.InverseTransformPoint(GetBezierPoint(t));
-            cards[i].anchoredPosition = pos;
+            handCards[i].anchoredPosition = pos;
 
             Vector2 tangent = GetBezierTangent(t);
             float angle = Mathf.Atan2(tangent.y, tangent.x) * Mathf.Rad2Deg;
-            cards[i].localRotation = Quaternion.Euler(0, 0, angle);
+            handCards[i].localRotation = Quaternion.Euler(0, 0, angle);
         }
     }
 

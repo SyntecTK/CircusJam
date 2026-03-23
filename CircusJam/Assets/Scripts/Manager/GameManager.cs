@@ -69,6 +69,11 @@ public class GameManager : MonoBehaviour
         Debug.Log("Neue Runde gestartet.");
     }
 
+    public void UndoPlayedCard()
+    {
+        cardsPlayedThisTurn = Mathf.Max(0, cardsPlayedThisTurn - 1);
+    }
+
     private void HandleCardDropped(int row, bool isPlayerSlot)
     {
         if (isPlayerSlot)

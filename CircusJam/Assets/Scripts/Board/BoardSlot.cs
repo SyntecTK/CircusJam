@@ -66,6 +66,12 @@ public class BoardSlot : MonoBehaviour, IDropHandler
             return;
         }
 
+        if (card.OwnerHand != null && card.OwnerHand.IsPlayer != isPlayerSlot)
+        {
+            Debug.Log("Karten koennen nur auf das eigene Board gelegt werden.");
+            return;
+        }
+
         // Prüfe Kartenlimit pro Zug
         if (isPlayerSlot && GameManager.Instance != null && !GameManager.Instance.CanPlayCard)
         {
@@ -89,7 +95,14 @@ public class BoardSlot : MonoBehaviour, IDropHandler
 
         card.transform.SetParent(transform);
         card.transform.localPosition = Vector3.zero;
+        card.transform.localRotation = Quaternion.identity;
+        card.transform.localScale = Vector3.one;
         card.wasDropped = true;
+
+        if (card.OwnerHand != null)
+        {
+            card.OwnerHand.NotifyHandChanged();
+        }
 
         targetBoard.PlaceCard(row, column, droppedCard);
         EventManager.CardDropped(row, isPlayerSlot);

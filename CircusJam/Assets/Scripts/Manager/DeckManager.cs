@@ -7,17 +7,34 @@ public class DeckManager : MonoBehaviour
     private List<int> enemyDrawDeck = new List<int>();
     private List<int> playerDiscard = new List<int>();
     private List<int> enemyDiscard = new List<int>();
+    private bool isInitialized;
 
     public int PlayerDrawCount => playerDrawDeck.Count;
     public int EnemyDrawCount => enemyDrawDeck.Count;
     public int PlayerDiscardCount => playerDiscard.Count;
     public int EnemyDiscardCount => enemyDiscard.Count;
 
-    private void Start()
+    private void Awake()
     {
+        InitializeDecks();
+    }
+
+    private void InitializeDecks()
+    {
+        if (isInitialized)
+        {
+            return;
+        }
+
+        playerDrawDeck.Clear();
+        enemyDrawDeck.Clear();
+        playerDiscard.Clear();
+        enemyDiscard.Clear();
+
         List<int> fullDeck = CreateDeck();
         Shuffle(fullDeck);
         SplitDeck(fullDeck);
+        isInitialized = true;
     }
 
     private List<int> CreateDeck()
@@ -55,6 +72,8 @@ public class DeckManager : MonoBehaviour
     /// </summary>
     public int DrawCard(bool isPlayer)
     {
+        InitializeDecks();
+
         List<int> drawDeck = isPlayer ? playerDrawDeck : enemyDrawDeck;
         if (drawDeck.Count == 0)
         {

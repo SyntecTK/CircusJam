@@ -8,6 +8,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     private CanvasGroup canvasGroup;
     private RectTransform rectTransform;
     private BoardSlot sourceSlot;
+    private HandManager ownerHand;
 
     public bool wasDropped = false;
 
@@ -16,6 +17,13 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         rectTransform = GetComponent<RectTransform>();
         canvas = GetComponentInParent<Canvas>();
         canvasGroup = GetComponent<CanvasGroup>();
+    }
+
+    public HandManager OwnerHand => ownerHand;
+
+    public void SetOwnerHand(HandManager handManager)
+    {
+        ownerHand = handManager;
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -28,10 +36,14 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         if (sourceSlot != null && cardData != null)
         {
             sourceSlot.RemoveCardFromSlot(cardData);
+
+            if (sourceSlot.IsPlayerSlot && GameManager.Instance != null)
+            {
+                GameManager.Instance.UndoPlayedCard();
+            }
         }
 
         transform.SetParent(canvas.transform);
-
         canvasGroup.blocksRaycasts = false;
     }
 
@@ -47,11 +59,18 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         {
             transform.SetParent(originalParent);
             transform.localPosition = Vector3.zero;
+            transform.localRotation = Quaternion.identity;
+            transform.localScale = Vector3.one;
 
             Card cardData = GetComponent<Card>();
             if (sourceSlot != null && cardData != null)
             {
                 sourceSlot.RestoreCardToSlot(cardData);
+            }
+
+            if (ownerHand != null)
+            {
+                ownerHand.NotifyHandChanged();
             }
         }
         canvasGroup.blocksRaycasts = true;
