@@ -73,7 +73,7 @@ public class BoardSlot : MonoBehaviour, IDropHandler
         }
 
         // Prüfe Kartenlimit pro Zug
-        if (isPlayerSlot && GameManager.Instance != null && !GameManager.Instance.CanPlayCard)
+        if (GameManager.Instance != null && !GameManager.Instance.CanPlayCard)
         {
             Debug.Log("Kartenlimit erreicht! Maximal " + GameManager.Instance.MaxCardsPerTurn + " Karten pro Zug.");
             return;

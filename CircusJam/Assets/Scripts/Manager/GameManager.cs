@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -26,6 +27,8 @@ public class GameManager : MonoBehaviour
     public int MaxCardsPerTurn => maxCardsPerTurn;
     public bool CanPlayCard => cardsPlayedThisTurn < maxCardsPerTurn;
     public bool IsPlayerTurn => isPlayerTurn;
+
+    private bool gameIsActive = false;
 
     private void Awake()
     {
@@ -55,12 +58,12 @@ public class GameManager : MonoBehaviour
 
         cardsPlayedThisTurn = 0;
         RefreshState();
-        EventManager.TurnEnded();
+        //EventManager.TurnEnded();
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) && gameIsActive)
         {
             EndTurn();
         }
@@ -95,7 +98,7 @@ public class GameManager : MonoBehaviour
 
         cardsPlayedThisTurn = 0;
         isPlayerTurn = !isPlayerTurn;
-        
+
         // Repopulate hand für den NEUEN Spieler
         if (isPlayerTurn && playerHandManager != null)
         {
@@ -105,7 +108,7 @@ public class GameManager : MonoBehaviour
         {
             enemyHandManager.PopulateHand();
         }
-        
+
         RefreshState();
         EventManager.TurnEnded();
         Debug.Log($"Zug vorbei. {(isPlayerTurn ? "Spieler" : "Gegner")} ist jetzt dran.");
@@ -147,10 +150,7 @@ public class GameManager : MonoBehaviour
 
     private void HandleCardDropped(int row, bool isPlayerSlot)
     {
-        if (isPlayerSlot)
-        {
-            cardsPlayedThisTurn++;
-        }
+        cardsPlayedThisTurn++;
 
         Board sourceBoard = isPlayerSlot ? playerBoard : enemyBoard;
         Board oppositeBoard = isPlayerSlot ? enemyBoard : playerBoard;
@@ -162,6 +162,26 @@ public class GameManager : MonoBehaviour
         }
 
         RefreshState();
+        CheckGameOver();
+    }
+
+    private void CheckGameOver()
+    {
+        if (playerBoard.IsFull() || enemyBoard.IsFull())
+        {
+            int pScore = ScoreSystem.CalculateTotalScore(playerBoard);
+            int eScore = ScoreSystem.CalculateTotalScore(enemyBoard);
+
+            string winner;
+            if (pScore > eScore)
+                winner = "Spieler 1";
+            else if (eScore > pScore)
+                winner = "Spieler 2";
+            else
+                winner = "Unentschieden";
+
+            EventManager.GameOver(winner, pScore, eScore);
+        }
     }
 
     private void HandleCardRemoved(int row, bool isPlayerSlot)
@@ -275,6 +295,16 @@ public class GameManager : MonoBehaviour
             card.gameObject.SetActive(false);
             EventManager.CardRemoved(row, isPlayerSlot);
         }
+    }
+
+    public void SetGameActive()
+    {
+        gameIsActive = true;
+    }
+
+    public void RestartGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }
 

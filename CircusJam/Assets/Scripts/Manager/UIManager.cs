@@ -1,9 +1,17 @@
-﻿using TMPro;
+﻿using System;
+using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SocialPlatforms.Impl;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
+    [Header("Start Screen")]
+    [SerializeField] private GameObject startScreen;
+    [SerializeField] private TMP_InputField player1NameInput;
+    [SerializeField] private TMP_InputField player2NameInput;
+
     [Header("Score Texts")]
     [SerializeField] private TMP_Text enemyScore01;
     [SerializeField] private TMP_Text enemyScore02;
@@ -25,8 +33,23 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Board enemyBoard;
     [SerializeField] private DeckManager deckManager;
 
+    [Header("WinText")]
+    [SerializeField] private GameObject winScreen;
+    [SerializeField] private TMP_Text winText;
+    [SerializeField] private TMP_Text p1PointsText;
+    [SerializeField] private TMP_Text p2PointsText;
+
+    [Header("PlayerCard")]
+    [SerializeField] private GameObject playerCardDisplay;
+    [SerializeField] private TMP_Text playerCardText;
+    [SerializeField] private TMP_Text turnAroundText;
+
+
     private TMP_Text[] playerScoreTexts;
     private TMP_Text[] enemyScoreTexts;
+
+    private string player1Name;
+    private string player2Name;
 
     private void Start()
     {
@@ -41,6 +64,7 @@ public class UIManager : MonoBehaviour
         EventManager.OnCardDropped += OnBoardChanged;
         EventManager.OnCardRemoved += OnBoardChanged;
         EventManager.OnTurnEnded += OnTurnEnded;
+        EventManager.OnGameOver += OnGameOver;
     }
 
     private void OnDisable()
@@ -48,6 +72,7 @@ public class UIManager : MonoBehaviour
         EventManager.OnCardDropped -= OnBoardChanged;
         EventManager.OnCardRemoved -= OnBoardChanged;
         EventManager.OnTurnEnded -= OnTurnEnded;
+        EventManager.OnGameOver -= OnGameOver;
     }
 
     private void OnBoardChanged(int row, bool isPlayerSlot)
@@ -58,6 +83,21 @@ public class UIManager : MonoBehaviour
     private void OnTurnEnded()
     {
         RefreshAll();
+        ShowPlayerCard();
+    }
+
+    private void OnGameOver(string winnerName, int playerScore, int enemyScore)
+    {
+        if (winScreen != null)
+        {
+            winScreen.SetActive(true);
+        }
+        winText.text = winnerName == "Unentschieden"
+            ? "Unentschieden!"
+            : $"{winnerName} gewinnt!";
+
+        p1PointsText.text = $"Spieler 1: {playerScore} Punkte";
+        p2PointsText.text = $"Spieler 2: {enemyScore} Punkte";
     }
 
     private void RefreshAll()
@@ -105,5 +145,88 @@ public class UIManager : MonoBehaviour
         {
             playerDiscardCountText.text = isPlayerTurn ? deckManager.PlayerDiscardCount.ToString() : deckManager.EnemyDiscardCount.ToString();
         }
+    }
+
+    public void RestartGame()
+    {
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.RestartGame();
+        }
+
+        if (winScreen != null)
+        {
+            winScreen.SetActive(false);
+        }
+
+        RefreshAll();
+    }
+
+    private void ShowPlayerCard()
+    {
+        StartCoroutine(FadePlayerCardDisplay());
+    }
+
+    private IEnumerator FadePlayerCardDisplay()
+    {
+        if (playerCardDisplay == null)
+        {
+            yield break;
+        }
+
+        if (GameManager.Instance.IsPlayerTurn)
+        {
+            playerCardText.text = player1Name + "'s turn!";
+            turnAroundText.text = player2Name + " please turn around!";
+        }
+        else
+        {
+            playerCardText.text = player2Name + "'s turn!";
+            turnAroundText.text = player1Name + " please turn around!";
+        }
+
+        playerCardDisplay.SetActive(true);
+        CanvasGroup canvasGroup = playerCardDisplay.GetComponent<CanvasGroup>();
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 0f;
+            float elapsedTime = 0f;
+            float fadeDuration = 0.5f;
+            while (elapsedTime < fadeDuration)
+            {
+                elapsedTime += Time.deltaTime;
+                canvasGroup.alpha = Mathf.Clamp01(elapsedTime / fadeDuration);
+                yield return null;
+            }
+            canvasGroup.alpha = 1f;
+        }
+        yield return new WaitForSeconds(2f);
+        if (canvasGroup != null)
+        {
+            float fadeOutTime = 0f;
+            float fadeOutDuration = 0.5f;
+            while (fadeOutTime < fadeOutDuration)
+            {
+                fadeOutTime += Time.deltaTime;
+                canvasGroup.alpha = Mathf.Clamp01(1f - (fadeOutTime / fadeOutDuration));
+                yield return null;
+            }
+            canvasGroup.alpha = 0f;
+        }
+        playerCardDisplay.SetActive(false);
+    }
+
+    public void StartGame()
+    {
+        player1Name = string.IsNullOrEmpty(player1NameInput.text) ? "Spieler 1" : player1NameInput.text;
+        player2Name = string.IsNullOrEmpty(player2NameInput.text) ? "Spieler 2" : player2NameInput.text;
+
+        startScreen.SetActive(false);
+        GameManager.Instance.SetGameActive();
+    }
+
+    public void QuitGame()
+    {
+        Application.Quit();
     }
 }

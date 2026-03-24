@@ -18,4 +18,14 @@ public class Board : MonoBehaviour
     {
         grid[row, column] = null;
     }
+
+    public bool IsFull()
+    {
+        for (int row = 0; row < grid.GetLength(0); row++)
+            for (int col = 0; col < grid.GetLength(1); col++)
+                if (grid[row, col] == null)
+                    return false;
+        return true;
+
+    }
 }
