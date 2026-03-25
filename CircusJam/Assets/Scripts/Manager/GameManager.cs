@@ -99,6 +99,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
+            Debug.Log("Ended Turn");
             EndTurn();
             passedTurn = false;
         }

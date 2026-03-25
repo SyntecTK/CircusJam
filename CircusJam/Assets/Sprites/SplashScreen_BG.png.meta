@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 022781bdd813a0543a3e42117fe4c213
+guid: b2c3fb04e8345ad43915c241ea2c4184
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4977854010254751143
-    second: CardBack_02_red_0
+      213: 252586967407281472
+    second: SplashScreen_BG_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: CardBack_02_red_0
+      name: SplashScreen_BG_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 1100
-        height: 1500
+        width: 1920
+        height: 1080
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 95a0307c62c1beab0800000000000000
-      internalID: -4977854010254751143
+      spriteID: 0454433328e518300800000000000000
+      internalID: 252586967407281472
       vertices: []
       indices: 
       edges: []
@@ -134,8 +134,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      CardBack_02_red_0: -4977854010254751143
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
