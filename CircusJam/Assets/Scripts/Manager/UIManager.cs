@@ -66,6 +66,7 @@ public class UIManager : MonoBehaviour
         EventManager.OnCardDropped += OnBoardChanged;
         EventManager.OnCardRemoved += OnBoardChanged;
         EventManager.OnTurnEnded += OnTurnEnded;
+        EventManager.OnPassTurn += OnTurnPassed;
         EventManager.OnGameOver += OnGameOver;
     }
 
@@ -74,6 +75,7 @@ public class UIManager : MonoBehaviour
         EventManager.OnCardDropped -= OnBoardChanged;
         EventManager.OnCardRemoved -= OnBoardChanged;
         EventManager.OnTurnEnded -= OnTurnEnded;
+        EventManager.OnPassTurn -= OnTurnPassed;
         EventManager.OnGameOver -= OnGameOver;
     }
 
@@ -99,8 +101,8 @@ public class UIManager : MonoBehaviour
             ? "Unentschieden!"
             : $"{winnerName} gewinnt!";
 
-        p1PointsText.text = $"Spieler 1: {playerScore} Punkte";
-        p2PointsText.text = $"Spieler 2: {enemyScore} Punkte";
+        p1PointsText.text = $"{player1Name}: {playerScore} Punkte";
+        p2PointsText.text = $"{player2Name}: {enemyScore} Punkte";
     }
 
     private void RefreshAll()
@@ -167,6 +169,11 @@ public class UIManager : MonoBehaviour
 
     private void ShowPlayerCard()
     {
+        StartCoroutine(FadeOut(playerCardDisplay.GetComponent<CanvasGroup>()));
+    }
+
+    private void OnTurnPassed()
+    {
         StartCoroutine(FadePlayerCardDisplay());
     }
 
@@ -203,19 +210,23 @@ public class UIManager : MonoBehaviour
             }
             canvasGroup.alpha = 1f;
         }
-        yield return new WaitForSeconds(2f);
-        if (canvasGroup != null)
+    }
+
+    private IEnumerator FadeOut(CanvasGroup targetCanvasGroup)
+    {
+        if (targetCanvasGroup != null)
         {
             float fadeOutTime = 0f;
             float fadeOutDuration = 0.5f;
             while (fadeOutTime < fadeOutDuration)
             {
                 fadeOutTime += Time.deltaTime;
-                canvasGroup.alpha = Mathf.Clamp01(1f - (fadeOutTime / fadeOutDuration));
+                targetCanvasGroup.alpha = Mathf.Clamp01(1f - (fadeOutTime / fadeOutDuration));
                 yield return null;
             }
-            canvasGroup.alpha = 0f;
+            targetCanvasGroup.alpha = 0f;
         }
+
         playerCardDisplay.SetActive(false);
     }
 

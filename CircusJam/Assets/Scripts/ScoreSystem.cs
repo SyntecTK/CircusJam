@@ -117,17 +117,52 @@ public class ScoreSystem : MonoBehaviour
     public static int CalculateRowScore(Board board, int row)
     {
         CardData[] cards = new CardData[5];
-        int baseScore = 0;
-
         for (int i = 0; i < 5; i++)
-        {
-            CardData card = board.GetCard(row, i);
-            cards[i] = card;
-            baseScore += card != null ? card.PointValue : 0;
-        }
+            cards[i] = board.GetCard(row, i);
 
         PokerHand hand = GetPokerHand(cards);
+        int baseScore = GetContributingScore(cards, hand);
         return baseScore * HandMultipliers[hand];
+    }
+
+    private static int GetContributingScore(CardData[] rowCards, PokerHand hand)
+    {
+        var cards = rowCards.Where(c => c != null).ToList();
+        if (cards.Count == 0) return 0;
+
+        var counts = new Dictionary<int, int>();
+        foreach (var card in cards)
+        {
+            counts.TryGetValue(card.RankValue, out int c);
+            counts[card.RankValue] = c + 1;
+        }
+
+        switch (hand)
+        {
+            case PokerHand.HighCard:
+                int maxRank = cards.Max(c => c.RankValue);
+                return cards.Where(c => c.RankValue == maxRank).Max(c => c.PointValue);
+
+            case PokerHand.OnePair:
+                int pairRank = counts.First(kvp => kvp.Value == 2).Key;
+                return cards.Where(c => c.RankValue == pairRank).Sum(c => c.PointValue);
+
+            case PokerHand.TwoPair:
+                var pairRanks = new HashSet<int>(counts.Where(kvp => kvp.Value == 2).Select(kvp => kvp.Key));
+                return cards.Where(c => pairRanks.Contains(c.RankValue)).Sum(c => c.PointValue);
+
+            case PokerHand.ThreeOfAKind:
+                int threeRank = counts.First(kvp => kvp.Value == 3).Key;
+                return cards.Where(c => c.RankValue == threeRank).Sum(c => c.PointValue);
+
+            case PokerHand.FourOfAKind:
+                int fourRank = counts.First(kvp => kvp.Value == 4).Key;
+                return cards.Where(c => c.RankValue == fourRank).Sum(c => c.PointValue);
+
+            // Straight, Flush, FullHouse, StraightFlush, RoyalFlush, FiveOfAKind: all cards contribute
+            default:
+                return cards.Sum(c => c.PointValue);
+        }
     }
 
     public static int CalculateTotalScore(Board board)

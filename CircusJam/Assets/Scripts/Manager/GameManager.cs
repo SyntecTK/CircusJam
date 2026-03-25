@@ -18,6 +18,8 @@ public class GameManager : MonoBehaviour
     private readonly int[,] enemyBoardState = new int[3, 5];
 
     private bool isPlayerTurn = true;
+    private bool passedTurn = false;
+    public bool PassedTurn => passedTurn;
     private int cardsPlayedThisTurn;
 
     public int[] PlayerRowScores => (int[])playerRowScores.Clone();
@@ -58,14 +60,13 @@ public class GameManager : MonoBehaviour
 
         cardsPlayedThisTurn = 0;
         RefreshState();
-        //EventManager.TurnEnded();
     }
 
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space) && gameIsActive)
         {
-            EndTurn();
+            PassTurn();
         }
     }
 
@@ -81,25 +82,37 @@ public class GameManager : MonoBehaviour
         EventManager.OnCardRemoved -= HandleCardRemoved;
     }
 
+    public void PassTurn()
+    {
+        if(!passedTurn)
+        {
+            if (isPlayerTurn && playerHandManager != null)
+            {
+                playerHandManager.DiscardUnplayedCards();
+            }
+            else if (!isPlayerTurn && enemyHandManager != null)
+            {
+                enemyHandManager.DiscardUnplayedCards();
+            }
+            EventManager.PassTurn();
+            passedTurn = true;
+        }
+        else
+        {
+            EndTurn();
+            passedTurn = false;
+        }
+        
+    }
+
     public void EndTurn()
     {
         LockBoardCards(playerBoard);
         LockBoardCards(enemyBoard);
 
-        // Discard unplayed cards vom aktuellen Spieler
-        if (isPlayerTurn && playerHandManager != null)
-        {
-            playerHandManager.DiscardUnplayedCards();
-        }
-        else if (!isPlayerTurn && enemyHandManager != null)
-        {
-            enemyHandManager.DiscardUnplayedCards();
-        }
-
         cardsPlayedThisTurn = 0;
         isPlayerTurn = !isPlayerTurn;
 
-        // Repopulate hand für den NEUEN Spieler
         if (isPlayerTurn && playerHandManager != null)
         {
             playerHandManager.PopulateHand();
