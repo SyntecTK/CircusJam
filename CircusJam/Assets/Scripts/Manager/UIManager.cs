@@ -22,11 +22,13 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TMP_Text playerScoreTotal;
     [SerializeField] private TMP_Text enemyScoreTotal;
 
-    [Header("Deck Texts")]
+    [Header("Deck Components")]
     [SerializeField] private TMP_Text playerDeckCountText;
-
-    [Header("Discard Texts")]
     [SerializeField] private TMP_Text playerDiscardCountText;
+    [SerializeField] private Image deckImage;
+    [SerializeField] private Image discardImage;
+    [SerializeField] private Sprite playerBackSprite;
+    [SerializeField] private Sprite enemyBackSprite;
 
     [Header("References")]
     [SerializeField] private Board playerBoard;
@@ -84,6 +86,7 @@ public class UIManager : MonoBehaviour
     {
         RefreshAll();
         ShowPlayerCard();
+        SwapCardBacks(GameManager.Instance.IsPlayerTurn);
     }
 
     private void OnGameOver(string winnerName, int playerScore, int enemyScore)
@@ -214,6 +217,32 @@ public class UIManager : MonoBehaviour
             canvasGroup.alpha = 0f;
         }
         playerCardDisplay.SetActive(false);
+    }
+
+    private void SwapCardBacks(bool isPlayerTurn)
+    {
+        if(isPlayerTurn)
+        {
+            if (deckImage != null)
+            {
+                deckImage.sprite = playerBackSprite;
+            }
+            if (discardImage != null)
+            {
+                discardImage.sprite = playerBackSprite;
+            }
+        }
+        else
+        {
+            if (deckImage != null)
+            {
+                deckImage.sprite = enemyBackSprite;
+            }
+            if (discardImage != null)
+            {
+                discardImage.sprite = enemyBackSprite;
+            }
+        }
     }
 
     public void StartGame()
