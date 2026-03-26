@@ -10,6 +10,9 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     private BoardSlot sourceSlot;
     private HandManager ownerHand;
 
+    [SerializeField] private AudioClip cardDropSound;
+    private AudioSource audioSource;
+
     public bool wasDropped = false;
 
     private void Awake()
@@ -17,6 +20,7 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         rectTransform = GetComponent<RectTransform>();
         canvas = GetComponentInParent<Canvas>();
         canvasGroup = GetComponent<CanvasGroup>();
+        audioSource = GetComponent<AudioSource>();
     }
 
     public HandManager OwnerHand => ownerHand;
@@ -45,17 +49,18 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
         transform.SetParent(canvas.transform);
         canvasGroup.blocksRaycasts = false;
+        audioSource.Play();
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        
+
         rectTransform.anchoredPosition += eventData.delta / canvas.scaleFactor;
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        if(!wasDropped)
+        if (!wasDropped)
         {
             transform.SetParent(originalParent);
             transform.localPosition = Vector3.zero;
@@ -74,5 +79,9 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
             }
         }
         canvasGroup.blocksRaycasts = true;
+        if (cardDropSound != null)
+        {
+            audioSource.PlayOneShot(cardDropSound);
+        }
     }
 }

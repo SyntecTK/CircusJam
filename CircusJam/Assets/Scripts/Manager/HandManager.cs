@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -19,6 +20,12 @@ public class HandManager : MonoBehaviour, IDropHandler
     [SerializeField] private RectTransform cardPrefab;
     [SerializeField] private int cardCount = 6;
 
+    [Header("Card Animation")]
+    [SerializeField] private float cardAnimDuration = 0.3f;
+    [SerializeField] private float cardAnimDelay = 0.1f;
+    [SerializeField] private float cardEntryTOffset = 0.35f;   // Neue Variable für links-rechts Starten
+    [SerializeField] private Vector2 cardStartOffset = new Vector2(-800f, 0f);
+
     private List<RectTransform> cards = new List<RectTransform>();
 
     public bool IsPlayer => isPlayer;
@@ -35,6 +42,8 @@ public class HandManager : MonoBehaviour, IDropHandler
 
     public void PopulateHand()
     {
+        StopAllCoroutines();
+
         foreach (var c in cards)
         {
             if (c != null) Destroy(c.gameObject);
@@ -54,7 +63,8 @@ public class HandManager : MonoBehaviour, IDropHandler
             AssignCardValue(card, drawnCard, i);
             cards.Add(card);
         }
-        ArrangeCards();
+
+        StartCoroutine(AnimateHandIn());
     }
 
     private void AssignCardValue(RectTransform card, CardIdentity drawnCard, int index)
@@ -99,10 +109,9 @@ public class HandManager : MonoBehaviour, IDropHandler
             RectTransform cardRect = cards[i];
             if (cardRect == null) continue;
 
-            // Nur Karten discarden, die noch in der Hand sind (Kind dieses Transforms)
             if (cardRect.parent != transform)
             {
-                continue; // Karte wurde aufs Board gespielt, nicht discarden
+                continue;
             }
 
             CardData cardData = cardRect.GetComponent<CardData>();
@@ -136,6 +145,98 @@ public class HandManager : MonoBehaviour, IDropHandler
         ArrangeCards();
     }
 
+    // ---------------------- Animation ----------------------
+
+    private IEnumerator AnimateHandIn()
+    {
+        List<RectTransform> handCards = new List<RectTransform>();
+        for (int i = 0; i < cards.Count; i++)
+        {
+            RectTransform card = cards[i];
+            if (card != null && card.parent == transform)
+                handCards.Add(card);
+        }
+
+        int count = handCards.Count;
+        if (count == 0) yield break;
+
+        float[] targetTs = new float[count];
+
+        float spacing = cardCount > 1 ? 1f / (cardCount - 1) : 0f;
+        float tStart = 0.5f - (count - 1) * spacing / 2f;
+
+        // Hide all cards and place them at t=0
+        for (int i = 0; i < count; i++)
+        {
+            float t = count == 1 ? 0.5f : tStart + i * spacing;
+            targetTs[i] = t;
+
+            CanvasGroup cg = handCards[i].GetComponent<CanvasGroup>();
+            if (cg == null) cg = handCards[i].gameObject.AddComponent<CanvasGroup>();
+            cg.alpha = 0f;
+
+            Vector2 hidePos = transform.InverseTransformPoint(GetBezierPoint(0f));
+            handCards[i].anchoredPosition = hidePos;
+
+            Vector2 hideTangent = GetBezierTangent(0f);
+            float hideAngle = Mathf.Atan2(hideTangent.y, hideTangent.x) * Mathf.Rad2Deg;
+            handCards[i].localRotation = Quaternion.Euler(0, 0, hideAngle);
+        }
+
+        // Animate each card one by one from t=0 to its target
+        Coroutine lastCoroutine = null;
+        for (int i = 0; i < count; i++)
+        {
+            lastCoroutine = StartCoroutine(AnimateCardAlongBezier(
+                handCards[i],
+                0f,
+                targetTs[i],
+                cardAnimDuration
+            ));
+
+            if (i < count - 1)
+                yield return new WaitForSeconds(cardAnimDelay);
+        }
+
+        if (lastCoroutine != null)
+            yield return lastCoroutine;
+    }
+
+    private IEnumerator AnimateCardAlongBezier(RectTransform card, float startT, float targetT, float duration)
+    {
+        // Make card visible at animation start
+        CanvasGroup cg = card.GetComponent<CanvasGroup>();
+        if (cg != null) cg.alpha = 1f;
+
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float tNorm = Mathf.Clamp01(elapsed / duration);
+            float eased = 1f - (1f - tNorm) * (1f - tNorm);
+            float currentT = Mathf.Lerp(startT, targetT, eased);
+
+            Vector2 point = transform.InverseTransformPoint(GetBezierPoint(currentT));
+            card.anchoredPosition = point;
+
+            Vector2 tangent = GetBezierTangent(currentT);
+            float angle = Mathf.Atan2(tangent.y, tangent.x) * Mathf.Rad2Deg;
+            card.localRotation = Quaternion.Euler(0, 0, angle);
+
+            yield return null;
+        }
+
+        Vector2 finalPos = transform.InverseTransformPoint(GetBezierPoint(targetT));
+        card.anchoredPosition = finalPos;
+
+        Vector2 finalTangent = GetBezierTangent(targetT);
+        float finalAngle = Mathf.Atan2(finalTangent.y, finalTangent.x) * Mathf.Rad2Deg;
+        card.localRotation = Quaternion.Euler(0, 0, finalAngle);
+    }
+
+    // ---------------------- Instant Layout ----------------------
+
     private void ArrangeCards()
     {
         List<RectTransform> handCards = new List<RectTransform>();
@@ -165,6 +266,8 @@ public class HandManager : MonoBehaviour, IDropHandler
             handCards[i].localRotation = Quaternion.Euler(0, 0, angle);
         }
     }
+
+    // ---------------------- Bezier Math ----------------------
 
     private Vector2 GetBezierPoint(float t)
     {
