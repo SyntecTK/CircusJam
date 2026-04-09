@@ -11,6 +11,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject startScreen;
     [SerializeField] private TMP_InputField player1NameInput;
     [SerializeField] private TMP_InputField player2NameInput;
+    [SerializeField] private Image p1TicketCut;
+    [SerializeField] private Image p2TicketCut;
 
     [Header("Score Texts")]
     [SerializeField] private TMP_Text enemyScore01;
@@ -53,6 +55,9 @@ public class UIManager : MonoBehaviour
     private string player1Name;
     private string player2Name;
 
+    private bool p1IsReady = false;
+    private bool p2IsReady = false;
+
     private void Start()
     {
         playerScoreTexts = new TMP_Text[] { playerScore01, playerScore02, playerScore03 };
@@ -68,6 +73,9 @@ public class UIManager : MonoBehaviour
         EventManager.OnTurnEnded += OnTurnEnded;
         EventManager.OnPassTurn += OnTurnPassed;
         EventManager.OnGameOver += OnGameOver;
+
+        player1NameInput.onSubmit.AddListener(OnInputEnd);
+        player2NameInput.onSubmit.AddListener(OnInputEnd);
     }
 
     private void OnDisable()
@@ -77,6 +85,33 @@ public class UIManager : MonoBehaviour
         EventManager.OnTurnEnded -= OnTurnEnded;
         EventManager.OnPassTurn -= OnTurnPassed;
         EventManager.OnGameOver -= OnGameOver;
+    }
+
+    private void OnInputEnd(string input)
+    {
+        if (player1NameInput.isFocused)
+        {
+            p1TicketCut.GetComponent<Animator>().Play("TicketRip");
+            p1TicketCut.GetComponent<AudioSource>().Play();
+            p1IsReady = true;
+        }
+        else if (player2NameInput.isFocused)
+        {
+            p2TicketCut.GetComponent<Animator>().Play("TicketRip");
+            p2TicketCut.GetComponent<AudioSource>().Play();
+            p2IsReady = true;
+        }
+
+        if (p1IsReady && p2IsReady)
+        {
+            StartCoroutine(StartGameDelayed(2f));
+        }
+    }
+
+    private IEnumerator StartGameDelayed(float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        StartGame();
     }
 
     private void OnBoardChanged(int row, bool isPlayerSlot)
@@ -232,7 +267,7 @@ public class UIManager : MonoBehaviour
 
     private void SwapCardBacks(bool isPlayerTurn)
     {
-        if(isPlayerTurn)
+        if (isPlayerTurn)
         {
             if (deckImage != null)
             {

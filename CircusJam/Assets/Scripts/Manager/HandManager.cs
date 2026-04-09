@@ -23,8 +23,7 @@ public class HandManager : MonoBehaviour, IDropHandler
     [Header("Card Animation")]
     [SerializeField] private float cardAnimDuration = 0.3f;
     [SerializeField] private float cardAnimDelay = 0.1f;
-    [SerializeField] private float cardEntryTOffset = 0.35f;   // Neue Variable für links-rechts Starten
-    [SerializeField] private Vector2 cardStartOffset = new Vector2(-800f, 0f);
+    [SerializeField] private float cardEntryTOffset = 0.35f;
 
     private List<RectTransform> cards = new List<RectTransform>();
 
