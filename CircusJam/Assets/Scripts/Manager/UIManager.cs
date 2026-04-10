@@ -15,6 +15,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Image p2TicketCut;
 
     [Header("Score Texts")]
+    [SerializeField] private TMP_Text currentPlayerDisplay;
     [SerializeField] private TMP_Text enemyScore01;
     [SerializeField] private TMP_Text enemyScore02;
     [SerializeField] private TMP_Text enemyScore03;
@@ -124,6 +125,14 @@ public class UIManager : MonoBehaviour
         RefreshAll();
         ShowPlayerCard();
         SwapCardBacks(GameManager.Instance.IsPlayerTurn);
+        DisplayCurrentPlayer();
+    }
+
+    private void DisplayCurrentPlayer()
+    {
+        currentPlayerDisplay.text = GameManager.Instance.IsPlayerTurn ? 
+                                                    player1Name + "'s Turn!" :
+                                                    player2Name + "'s Turn!";
     }
 
     private void OnGameOver(string winnerName, int playerScore, int enemyScore)
@@ -132,12 +141,17 @@ public class UIManager : MonoBehaviour
         {
             winScreen.SetActive(true);
         }
+        string displayName = winnerName == "Spieler 1" ? player1Name
+                           : winnerName == "Spieler 2" ? player2Name
+                           : winnerName;
+
         winText.text = winnerName == "Unentschieden"
             ? "Unentschieden!"
-            : $"{winnerName} gewinnt!";
+            : $"{displayName} gewinnt!";
 
         p1PointsText.text = $"{player1Name}: {playerScore} Punkte";
         p2PointsText.text = $"{player2Name}: {enemyScore} Punkte";
+        currentPlayerDisplay.enabled = false;
     }
 
     private void RefreshAll()
@@ -296,12 +310,54 @@ public class UIManager : MonoBehaviour
         player1Name = string.IsNullOrEmpty(player1NameInput.text) ? "Spieler 1" : player1NameInput.text;
         player2Name = string.IsNullOrEmpty(player2NameInput.text) ? "Spieler 2" : player2NameInput.text;
 
+        currentPlayerDisplay.text = player1Name + "'s Turn!";
+
         startScreen.SetActive(false);
-        GameManager.Instance.SetGameActive();
+        StartCoroutine(ShowInitialPlayerCard());
+        StartCoroutine(TextAnimation(currentPlayerDisplay));
     }
 
     public void QuitGame()
     {
         Application.Quit();
+    }
+
+    private IEnumerator ShowInitialPlayerCard()
+    {
+        playerCardText.text = player1Name + "'s turn!";
+        turnAroundText.text = player2Name + " please turn around!";
+
+        playerCardDisplay.SetActive(true);
+        CanvasGroup canvasGroup = playerCardDisplay.GetComponent<CanvasGroup>();
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 0f;
+            float elapsedTime = 0f;
+            float fadeDuration = 0.5f;
+            while (elapsedTime < fadeDuration)
+            {
+                elapsedTime += Time.deltaTime;
+                canvasGroup.alpha = Mathf.Clamp01(elapsedTime / fadeDuration);
+                yield return null;
+            }
+            canvasGroup.alpha = 1f;
+        }
+
+        yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
+
+        yield return StartCoroutine(FadeOut(playerCardDisplay.GetComponent<CanvasGroup>()));
+
+        GameManager.Instance.SetGameActive();
+        GameManager.Instance.StartFirstTurn();
+    }
+
+    private IEnumerator TextAnimation(TMP_Text text, float amplitude = 5f, float speed = 1f)
+    {
+        float baseSize = text.fontSize;
+        while (true)
+        {
+            text.fontSize = baseSize + amplitude * Mathf.Sin(Time.time * speed);
+            yield return null;
+        }
     }
 }

@@ -12,6 +12,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private HandManager enemyHandManager;
     [SerializeField] private int maxCardsPerTurn = 4;
 
+    [SerializeField] private AudioSource cardDrawSound;
+
     private readonly int[] playerRowScores = new int[3];
     private readonly int[] enemyRowScores = new int[3];
     private readonly int[,] playerBoardState = new int[3, 5];
@@ -47,15 +49,6 @@ public class GameManager : MonoBehaviour
         if (enemyHandManager != null)
         {
             enemyHandManager.ConfigureOwner(false);
-        }
-
-        if (isPlayerTurn && playerHandManager != null)
-        {
-            playerHandManager.PopulateHand();
-        }
-        else if (!isPlayerTurn && enemyHandManager != null)
-        {
-            enemyHandManager.PopulateHand();
         }
 
         cardsPlayedThisTurn = 0;
@@ -314,6 +307,19 @@ public class GameManager : MonoBehaviour
     public void SetGameActive()
     {
         gameIsActive = true;
+    }
+
+    public void StartFirstTurn()
+    {
+        if (isPlayerTurn && playerHandManager != null)
+        {
+            playerHandManager.PopulateHand();
+        }
+        else if (!isPlayerTurn && enemyHandManager != null)
+        {
+            enemyHandManager.PopulateHand();
+        }
+        AudioManager.Instance.PlayCardShuffleSound();
     }
 
     public void RestartGame()
