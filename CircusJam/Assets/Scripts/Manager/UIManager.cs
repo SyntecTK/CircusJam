@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
+    [SerializeField] private GameObject combinations;
     [Header("Start Screen")]
     [SerializeField] private GameObject startScreen;
     [SerializeField] private TMP_InputField player1NameInput;
@@ -64,7 +65,17 @@ public class UIManager : MonoBehaviour
         playerScoreTexts = new TMP_Text[] { playerScore01, playerScore02, playerScore03 };
         enemyScoreTexts = new TMP_Text[] { enemyScore01, enemyScore02, enemyScore03 };
 
+        currentPlayerDisplay.enabled = false;
+
         RefreshAll();
+    }
+
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.Tab))
+        {
+            combinations.SetActive(!combinations.activeSelf);
+        }
     }
 
     private void OnEnable()
@@ -312,6 +323,7 @@ public class UIManager : MonoBehaviour
 
         currentPlayerDisplay.text = player1Name + "'s Turn!";
 
+        currentPlayerDisplay.enabled = true;
         startScreen.SetActive(false);
         StartCoroutine(ShowInitialPlayerCard());
         StartCoroutine(TextAnimation(currentPlayerDisplay));
