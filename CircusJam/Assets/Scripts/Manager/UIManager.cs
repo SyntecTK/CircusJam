@@ -246,13 +246,13 @@ public class UIManager : MonoBehaviour
 
         if (GameManager.Instance.IsPlayerTurn)
         {
-            playerCardText.text = player1Name + "'s turn!";
-            turnAroundText.text = player2Name + " please turn around!";
+            playerCardText.text = player2Name + "'s turn!";
+            turnAroundText.text = player1Name + " please turn around!";
         }
         else
         {
-            playerCardText.text = player2Name + "'s turn!";
-            turnAroundText.text = player1Name + " please turn around!";
+            playerCardText.text = player1Name + "'s turn!";
+            turnAroundText.text = player2Name + " please turn around!";
         }
 
         playerCardDisplay.SetActive(true);
