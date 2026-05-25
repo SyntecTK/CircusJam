@@ -98,6 +98,7 @@ public class BoardSlot : MonoBehaviour, IDropHandler
         card.transform.localRotation = Quaternion.identity;
         card.transform.localScale = Vector3.one;
         card.wasDropped = true;
+        card.enabled = false;
 
         if (card.OwnerHand != null)
         {

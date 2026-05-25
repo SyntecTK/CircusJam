@@ -102,6 +102,7 @@ public class HandManager : MonoBehaviour, IDropHandler
 
     public void DiscardUnplayedCards()
     {
+        StopAllCoroutines();
         for (int i = cards.Count - 1; i >= 0; i--)
         {
             RectTransform cardRect = cards[i];
@@ -202,6 +203,7 @@ public class HandManager : MonoBehaviour, IDropHandler
 
     private IEnumerator AnimateCardAlongBezier(RectTransform card, float startT, float targetT, float duration)
     {
+        if (card == null) yield break;
         // Make card visible at animation start
         CanvasGroup cg = card.GetComponent<CanvasGroup>();
         if (cg != null) cg.alpha = 1f;
@@ -210,10 +212,12 @@ public class HandManager : MonoBehaviour, IDropHandler
 
         while (elapsed < duration)
         {
+            if (card == null) yield break;
             elapsed += Time.deltaTime;
             float tNorm = Mathf.Clamp01(elapsed / duration);
             float eased = 1f - (1f - tNorm) * (1f - tNorm);
             float currentT = Mathf.Lerp(startT, targetT, eased);
+
 
             Vector2 point = transform.InverseTransformPoint(GetBezierPoint(currentT));
             card.anchoredPosition = point;
@@ -225,6 +229,7 @@ public class HandManager : MonoBehaviour, IDropHandler
             yield return null;
         }
 
+        if (card == null) yield break;
         Vector2 finalPos = transform.InverseTransformPoint(GetBezierPoint(targetT));
         card.anchoredPosition = finalPos;
 

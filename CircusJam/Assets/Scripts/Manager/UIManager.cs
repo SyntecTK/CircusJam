@@ -25,6 +25,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TMP_Text playerScore03;
     [SerializeField] private TMP_Text playerScoreTotal;
     [SerializeField] private TMP_Text enemyScoreTotal;
+    [SerializeField] private TMP_Text cardsLeftCount;
 
     [Header("Deck Components")]
     [SerializeField] private TMP_Text playerDeckCountText;
@@ -62,6 +63,8 @@ public class UIManager : MonoBehaviour
 
     private bool p1IsReady = false;
     private bool p2IsReady = false;
+
+    private Coroutine boardRefreshCoroutine;
 
     private void Start()
     {
@@ -135,7 +138,19 @@ public class UIManager : MonoBehaviour
 
     private void OnBoardChanged(int row, bool isPlayerSlot)
     {
+        if (boardRefreshCoroutine != null)
+        {
+            StopCoroutine(boardRefreshCoroutine);
+        }
+
+        boardRefreshCoroutine = StartCoroutine(RefreshBoardUiNextFrame());
+    }
+
+    private IEnumerator RefreshBoardUiNextFrame()
+    {
+        yield return null; // wait until GameManager finished processing the same event
         RefreshAll();
+        boardRefreshCoroutine = null;
     }
 
     private void OnTurnEnded()
@@ -177,6 +192,7 @@ public class UIManager : MonoBehaviour
         RefreshBoardScores(playerBoard, playerScoreTexts);
         RefreshBoardScores(enemyBoard, enemyScoreTexts);
         RefreshDeckCounts();
+        RefreshCardsLeftCount();
         playerScoreTotal.text = ScoreSystem.CalculateTotalScore(playerBoard).ToString();
         enemyScoreTotal.text = ScoreSystem.CalculateTotalScore(enemyBoard).ToString();
     }
@@ -217,6 +233,23 @@ public class UIManager : MonoBehaviour
         {
             playerDiscardCountText.text = isPlayerTurn ? deckManager.PlayerDiscardCount.ToString() : deckManager.EnemyDiscardCount.ToString();
         }
+    }
+
+    private void RefreshCardsLeftCount()
+    {
+        if (cardsLeftCount == null)
+        {
+            return;
+        }
+
+        if (GameManager.Instance == null)
+        {
+            cardsLeftCount.text = "4";
+            return;
+        }
+
+        int leftToPlay = Mathf.Max(0, GameManager.Instance.MaxCardsPerTurn - GameManager.Instance.CardsPlayedThisTurn);
+        cardsLeftCount.text = leftToPlay.ToString();
     }
 
     public void RestartGame()
