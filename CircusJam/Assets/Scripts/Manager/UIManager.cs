@@ -50,6 +50,9 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TMP_Text playerCardText;
     [SerializeField] private TMP_Text turnAroundText;
 
+    [Header("Tutorial")]
+    [SerializeField] private GameObject tutorialScreen;
+
 
     private TMP_Text[] playerScoreTexts;
     private TMP_Text[] enemyScoreTexts;
@@ -66,13 +69,14 @@ public class UIManager : MonoBehaviour
         enemyScoreTexts = new TMP_Text[] { enemyScore01, enemyScore02, enemyScore03 };
 
         currentPlayerDisplay.enabled = false;
+        tutorialScreen.SetActive(false);
 
         RefreshAll();
     }
 
     private void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Tab))
+        if (Input.GetKeyDown(KeyCode.Tab))
         {
             combinations.SetActive(!combinations.activeSelf);
         }
@@ -105,25 +109,28 @@ public class UIManager : MonoBehaviour
         {
             p1TicketCut.GetComponent<Animator>().Play("TicketRip");
             p1TicketCut.GetComponent<AudioSource>().Play();
+            player1Name = string.IsNullOrEmpty(player1NameInput.text) ? "Spieler 1" : player1NameInput.text;
             p1IsReady = true;
         }
         else if (player2NameInput.isFocused)
         {
             p2TicketCut.GetComponent<Animator>().Play("TicketRip");
             p2TicketCut.GetComponent<AudioSource>().Play();
+            player2Name = string.IsNullOrEmpty(player2NameInput.text) ? "Spieler 2" : player2NameInput.text;
             p2IsReady = true;
         }
 
         if (p1IsReady && p2IsReady)
         {
-            StartCoroutine(StartGameDelayed(2f));
+            StartCoroutine(StartTutorialDelayed(2f));
         }
     }
 
-    private IEnumerator StartGameDelayed(float seconds)
+    private IEnumerator StartTutorialDelayed(float seconds)
     {
         yield return new WaitForSeconds(seconds);
-        StartGame();
+        tutorialScreen.SetActive(true);
+        startScreen.SetActive(false);
     }
 
     private void OnBoardChanged(int row, bool isPlayerSlot)
@@ -141,7 +148,7 @@ public class UIManager : MonoBehaviour
 
     private void DisplayCurrentPlayer()
     {
-        currentPlayerDisplay.text = GameManager.Instance.IsPlayerTurn ? 
+        currentPlayerDisplay.text = GameManager.Instance.IsPlayerTurn ?
                                                     player1Name + "'s Turn!" :
                                                     player2Name + "'s Turn!";
     }
@@ -318,13 +325,11 @@ public class UIManager : MonoBehaviour
 
     public void StartGame()
     {
-        player1Name = string.IsNullOrEmpty(player1NameInput.text) ? "Spieler 1" : player1NameInput.text;
-        player2Name = string.IsNullOrEmpty(player2NameInput.text) ? "Spieler 2" : player2NameInput.text;
+        tutorialScreen.SetActive(false);
 
         currentPlayerDisplay.text = player1Name + "'s Turn!";
 
         currentPlayerDisplay.enabled = true;
-        startScreen.SetActive(false);
         StartCoroutine(ShowInitialPlayerCard());
         StartCoroutine(TextAnimation(currentPlayerDisplay));
     }
@@ -332,6 +337,11 @@ public class UIManager : MonoBehaviour
     public void QuitGame()
     {
         Application.Quit();
+    }
+
+    public void CloseTutorial()
+    {
+
     }
 
     private IEnumerator ShowInitialPlayerCard()

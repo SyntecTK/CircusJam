@@ -77,7 +77,7 @@ public class GameManager : MonoBehaviour
 
     public void PassTurn()
     {
-        if(!passedTurn)
+        if (!passedTurn)
         {
             if (isPlayerTurn && playerHandManager != null)
             {
@@ -96,7 +96,7 @@ public class GameManager : MonoBehaviour
             EndTurn();
             passedTurn = false;
         }
-        
+
     }
 
     public void EndTurn()
@@ -208,6 +208,7 @@ public class GameManager : MonoBehaviour
 
     public void RefreshState()
     {
+        if (!gameIsActive) return;
         RefreshScores(playerBoard, playerRowScores);
         RefreshScores(enemyBoard, enemyRowScores);
 
