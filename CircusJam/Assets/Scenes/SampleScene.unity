@@ -2298,7 +2298,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &383088035
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4995,6 +4995,7 @@ MonoBehaviour:
   playerScore03: {fileID: 1240256388}
   playerScoreTotal: {fileID: 2112272888}
   enemyScoreTotal: {fileID: 182626568}
+  cardsLeftCount: {fileID: 1821997311}
   playerDeckCountText: {fileID: 1618268249}
   playerDiscardCountText: {fileID: 334664200}
   deckImage: {fileID: 1649036863}
