@@ -79,9 +79,15 @@ public class CardDrag : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
             }
         }
         canvasGroup.blocksRaycasts = true;
+        
         if (cardDropSound != null)
         {
             audioSource.PlayOneShot(cardDropSound);
+        }
+
+        if(wasDropped && transform.parent.GetComponent<BoardSlot>() != null)
+        {
+            enabled = false;
         }
     }
 }

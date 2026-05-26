@@ -72,7 +72,6 @@ public class BoardSlot : MonoBehaviour, IDropHandler
             return;
         }
 
-        // Prüfe Kartenlimit pro Zug
         if (GameManager.Instance != null && !GameManager.Instance.CanPlayCard)
         {
             Debug.Log("Kartenlimit erreicht! Maximal " + GameManager.Instance.MaxCardsPerTurn + " Karten pro Zug.");
@@ -98,7 +97,6 @@ public class BoardSlot : MonoBehaviour, IDropHandler
         card.transform.localRotation = Quaternion.identity;
         card.transform.localScale = Vector3.one;
         card.wasDropped = true;
-        card.enabled = false;
 
         if (card.OwnerHand != null)
         {
